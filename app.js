@@ -1,6 +1,7 @@
 import express from "express";
 import dotenv from "dotenv";
 import morgan from "morgan";
+import cookieParser from "cookie-parser";
 import 'express-async-errors'
 
 // db
@@ -16,9 +17,11 @@ import authRoutes from './routes/authRoutes.js'
 dotenv.config();
 
 const app = express();
-// to parse JSON requests
+// to parse JSON requests sent from client
 app.use(express.json());
-// to log HTTP requests
+// to parse cookies sent from client
+app.use(cookieParser(process.env.JWT_SECRET));
+// to log HTTP requests to terminal
 app.use(morgan('tiny'))
 
 app.get('/', (req, res) => {
