@@ -2,7 +2,7 @@ import { Schema, model } from 'mongoose';
 import validator from 'validator'
 import bcrypt from 'bcryptjs';
 
-const userSchema = new Schema({
+const UserSchema = new Schema({
   name: {
     type: String,
     required: [true, 'Please provide name'], 
@@ -30,7 +30,7 @@ const userSchema = new Schema({
   }
 });
 
-userSchema.pre("save", async function (next) {
+UserSchema.pre("save", async function (next) {
   // console.log("Hey there")
   // console.log(this.modifiedPaths())
   // console.log(this.isModified("password"))
@@ -40,11 +40,11 @@ userSchema.pre("save", async function (next) {
   this.password = await bcrypt.hash(this.password, salt);
 });
 
-userSchema.methods.comparePassword = async function (enteredPassword) {
+UserSchema.methods.comparePassword = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };
 
 
-const User = model('User', userSchema);
+const User = model('User', UserSchema);
 
 export default User;
