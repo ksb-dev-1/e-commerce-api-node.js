@@ -1,15 +1,16 @@
 import jwt from "jsonwebtoken";
-import { StatusCodes } from "http-status-codes";
 
-const createJWT = (userId) => {
-  const token = jwt.sign({ userId }, process.env.JWT_SECRET, {
+// Create JSON Web Token (JWT)
+const createJWT = ({payload}) => {
+  const token = jwt.sign(payload, process.env.JWT_SECRET, {
     expiresIn: "1d",
   });
   return token;
 };
 
-const attatchCookiesToResponse = (res, user) => {
-  const token = createJWT(user._id);
+// Attatch cookie to response object with generated JWT
+const attatchCookiesToResponse = ({res, user}) => {
+  const token = createJWT({payload: user});
 
   res.cookie("jwt", token, {
     httpOnly: true,

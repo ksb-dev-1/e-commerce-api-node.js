@@ -1,80 +1,76 @@
 import { StatusCodes } from "http-status-codes";
 import User from "../models/User.js";
-import CustomErrors from "../errors/index.js";
 import jwtUtils from "../utils/index.js";
-import CustomAPIError from "../errors/custom-api.js";
+import CustomError from "../errors/index.js";
 
+// Register user
 const register = async (req, res) => {
   const { name, email, password } = req.body;
 
-  const isEmailExists = await User.findOne({ email });
-
-  if (isEmailExists) {
-    throw new CustomErrors.BadRequestError("Email already exists!");
+  if (!name || !email || !password) {
+    throw new CustomError.BadRequestError(
+      "Please provide name, email and password"
+    );
   }
 
+  const emailAlreadyExists = await User.findOne({ email });
+
+  if (emailAlreadyExists) {
+    throw new CustomError.BadRequestError("Email already exists");
+  }
+
+  // Assign role as "admin" fro first account
   const isFirstAccount = (await User.countDocuments({})) === 0;
+
   const role = isFirstAccount ? "admin" : "user";
 
-  const user = await User.create({
-    name,
-    email,
-    password,
-    role,
-  });
+  const user = await User.create({ name, email, password, role });
 
-  jwtUtils.attatchCookiesToResponse(res, user);
+  // This function returns what user fields we can send after successful registration
+  const tokenUser = jwtUtils.createTokenUser(user);
 
-  const userFieldsToSend = {
-    id: user._id,
-    name: user.name,
-    email: user.email,
-    role: user.role
-  }
+  // This function generates JWT and attaches cookie to response object with generated JWT
+  jwtUtils.attatchCookiesToResponse({ res, user: tokenUser });
 
-  res.status(StatusCodes.CREATED).json({
-    user: userFieldsToSend
-  });
+  res.status(StatusCodes.CREATED).json({ user: tokenUser });
 };
 
+// Login User
 const login = async (req, res) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
-    throw new CustomErrors.BadRequestError("Please provide email and password.");
+    throw new CustomError.BadRequestError("Please provide email and password");
   }
 
   const user = await User.findOne({ email });
 
   if (!user) {
-    throw new CustomErrors.UnauthenticatedError("Email doesn't exist!");
+    throw new CustomError.UnauthenticatedError("Invalid email");
   }
 
-  const isPasswordValid = await user.comparePassword(password);
+  const isPasswordCorrect = await user.comparePassword(password);
 
-  if (!isPasswordValid) {
-    throw new CustomErrors.UnauthenticatedError("Incorrect password");
+  if (!isPasswordCorrect) {
+    throw new CustomError.UnauthenticatedError("Invalid password");
   }
 
-  jwtUtils.attatchCookiesToResponse(res, user);
+  // This function returns what user fields we can send after successful registration
+  const tokenUser = jwtUtils.createTokenUser(user);
 
-  const userFieldsToSend = {
-    id: user._id,
-    name: user.name,
-    email: user.email,
-    role: user.role
-  }
+  // This function generates JWT and attaches cookie to response object with generated JWT
+  jwtUtils.attatchCookiesToResponse({ res, user: tokenUser });
 
-  res.status(StatusCodes.OK).json({
-    user: userFieldsToSend
-  });
+  res.status(StatusCodes.OK).json({ user: tokenUser });
 };
 
+// Logout user
 const logout = (req, res) => {
   res.cookie("jwt", "", {
     httpOnly: true,
     expires: new Date(0),
   });
+
   res.status(StatusCodes.OK).json({ message: "User Logged Out" });
 };
 
