@@ -5,7 +5,8 @@ import {
   getSingleProduct,
   updateProduct,
   deleteProduct,
-  uploadImage,
+  uploadProductImageLocal,
+  uploadProductImageCloud
 } from "../controllers/productController.js";
 import {
   authenticateUser,
@@ -17,8 +18,9 @@ const router = express.Router();
 router.post("/createProduct", authenticateUser, authorizeUser("admin"), createProduct);
 router.get("/", authenticateUser, getAllProducts);
 router.get("/:id", authenticateUser, getSingleProduct);
-router.patch("/updateProduct", authenticateUser, authorizeUser("admin"), updateProduct);
-router.delete("/deleteProduct", authenticateUser, authorizeUser("admin"), deleteProduct);
-router.post("/uploadImage", authenticateUser, authorizeUser("admin"), uploadImage);
+router.patch("/updateProduct/:id", authenticateUser, authorizeUser("admin"), updateProduct);
+router.delete("/deleteProduct/:id", authenticateUser, authorizeUser("admin"), deleteProduct);
+router.post("/uploadImageLocal", authenticateUser, authorizeUser("admin"), uploadProductImageLocal);
+router.post("/uploadImageCloud", authenticateUser, authorizeUser("admin"), uploadProductImageCloud);
 
 export default router;

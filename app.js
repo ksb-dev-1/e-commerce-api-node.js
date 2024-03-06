@@ -2,7 +2,10 @@ import express from "express";
 import dotenv from "dotenv";
 import morgan from "morgan";
 import cookieParser from "cookie-parser";
+import fileUpload from "express-fileupload"
+import { v2 as cloudinary } from "cloudinary";
 import "express-async-errors";
+
 
 // db
 import connectDB from "./db/connect.js";
@@ -15,8 +18,16 @@ import errorHandlerMiddleware from "./middlewares/error-handler.js";
 import authRoutes from "./routes/authRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 import productRoutes from './routes/productRoutes.js'
+import reviewRoutes from './routes/reviewRouter.js'
 
 dotenv.config();
+
+cloudinary.config({
+  cloud_name: process.env.CLOUD_NAME,
+  api_key: process.env.CLOUD_API_KEY,
+  api_secret: process.env.CLOUD_API_SECRET,
+});
+
 
 const app = express();
 // to parse JSON requests sent from client
@@ -25,6 +36,8 @@ app.use(express.json());
 app.use(cookieParser(process.env.JWT_SECRET));
 // to log HTTP requests to terminal
 app.use(morgan("tiny"));
+// to upload files
+app.use(fileUpload({ useTempFiles: true }));
 
 app.get("/", (req, res) => {
   res.send("Hello World");
@@ -33,6 +46,7 @@ app.get("/", (req, res) => {
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/users", userRoutes);
 app.use("/api/v1/products", productRoutes)
+app.use("/api/v1/reviews", reviewRoutes)
 
 app.use(notFoundMiddleware);
 app.use(errorHandlerMiddleware);

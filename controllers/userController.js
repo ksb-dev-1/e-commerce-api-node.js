@@ -1,9 +1,10 @@
 import { StatusCodes } from "http-status-codes";
+
 import User from "../models/User.js";
 import jwtUtils from "../utils/index.js";
 import CustomError from "../errors/index.js";
 
-// Get all users
+// Get all users (only accessible by admin)
 const getAllUsers = async (req, res) => {
   const users = await User.find({ role: "user" }).select("-password");
   res.status(StatusCodes.OK).json({ users });

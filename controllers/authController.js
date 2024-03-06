@@ -1,4 +1,5 @@
 import { StatusCodes } from "http-status-codes";
+
 import User from "../models/User.js";
 import jwtUtils from "../utils/index.js";
 import CustomError from "../errors/index.js";
