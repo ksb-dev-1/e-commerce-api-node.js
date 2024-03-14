@@ -1,4 +1,4 @@
-import { Schema, model } from 'mongoose';
+import { Schema, model } from "mongoose";
 
 const ReviewSchema = Schema(
   {
@@ -6,26 +6,26 @@ const ReviewSchema = Schema(
       type: Number,
       min: 1,
       max: 5,
-      required: [true, 'Please provide rating'],
+      required: [true, "Please provide rating"],
     },
     title: {
       type: String,
       trim: true,
-      required: [true, 'Please provide review title'],
+      required: [true, "Please provide review title"],
       maxlength: 100,
     },
     comment: {
       type: String,
-      required: [true, 'Please provide review text'],
+      required: [true, "Please provide review text"],
     },
     user: {
       type: Schema.ObjectId,
-      ref: 'User',
+      ref: "User",
       required: true,
     },
     product: {
       type: Schema.ObjectId,
-      ref: 'Product',
+      ref: "Product",
       required: true,
     },
   },
@@ -34,4 +34,39 @@ const ReviewSchema = Schema(
 
 ReviewSchema.index({ product: 1, user: 1 }, { unique: true });
 
-export default model('Review', ReviewSchema);
+ReviewSchema.statics.calculateAverageRating = async function (productId) {
+  const result = await this.aggregate([
+    { $match: { product: productId } },
+    {
+      $group: {
+        _id: null,
+        averageRating: { $avg: "$rating" },
+        numOfReviews: { $sum: 1 },
+      },
+    },
+  ]);
+
+  try {
+    await this.model("Product").findOneAndUpdate(
+      { _id: productId },
+      {
+        averageRating: result[0]?.averageRating || 0,
+        numOfReviews: result[0]?.numOfReviews || 0,
+      }
+    );
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+ReviewSchema.post("save", async function () {
+  await this.constructor.calculateAverageRating(this.product);
+  //console.log("Post save hook called");
+});
+
+ReviewSchema.post("remove", async function () {
+  await this.constructor.calculateAverageRating(this.product);
+  //console.log("Post remove hook called");
+});
+
+export default model("Review", ReviewSchema);

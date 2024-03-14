@@ -8,7 +8,6 @@ import { fileURLToPath } from "url";
 import Product from "../models/Product.js";
 import CustomError from "../errors/index.js";
 
-
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
@@ -32,7 +31,7 @@ const getAllProducts = async (req, res) => {
 const getSingleProduct = async (req, res) => {
   const { id: productId } = req.params;
 
-  const product = await Product.findOne({ _id: productId });
+  const product = await Product.findOne({ _id: productId }).populate("reviews");
 
   if (!product) {
     throw new CustomError.NotFoundError(`No product with id : ${productId}`);
@@ -119,5 +118,5 @@ export {
   updateProduct,
   deleteProduct,
   uploadProductImageLocal,
-  uploadProductImageCloud
+  uploadProductImageCloud,
 };

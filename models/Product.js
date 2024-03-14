@@ -70,6 +70,18 @@ const ProductSchema = new Schema(
   { timestamps: true, toJSON: { virtuals: true }, toObject: { virtuals: true } }
 );
 
+ProductSchema.virtual("reviews", {
+  ref: "Review",
+  localField: "_id",
+  foreignField: "product",
+  justOne: false,
+  //match: { rating: 3 }, // here you'll get reviews with rating 3
+});
+
+ProductSchema.pre("remove", async function (next) {
+  await this.model("Review").deleteMany({ product: this._id });
+});
+
 const Product = model("Product", ProductSchema);
 
 export default Product;
